@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import io
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -13,7 +14,7 @@ USGS_API_URL = (
 
 def fetch_data(url=USGS_API_URL):
     resp = requests.get(url)
-    df = pd.read_csv(pd.compat.StringIO(resp.text))
+    df = pd.read_csv(io.StringIO(resp.text))
     return df
 
 def preprocess(df: pd.DataFrame):

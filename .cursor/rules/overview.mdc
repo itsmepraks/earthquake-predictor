@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+App overview:
+
+The app is an earthquake predictor for the Dataset of Nepal. 
+
+The goal of the app is to showcase ML algorithms and techiniques described in the [proposal.md](mdc:proposal.md)
+
+We will be using Python and streamlit for the development. 
+
+Use the prototype folder for simple scripts to test out or show case individual techniques.
+
+Update the [whitepaper.md](mdc:whitepaper.md) as we progress.
+
