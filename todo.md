@@ -16,6 +16,8 @@
 - [x] Standardize schemas across datasets (columns, units, datetime formats)
 - [x] Handle missing values and outliers, and merge datasets
 
+*Phase 2 Summary: Downloaded USGS, NSC, SRTM, and DrivenData (building) datasets. Standardized schemas for earthquake data (USGS/NSC), combined them, and handled missing depth values.*
+
 ## Phase 2.5: Feature Engineering
 - [ ] Define and apply magnitude thresholds (e.g., Moderate, Strong, Major) to earthquake data.
 - [ ] Investigate geo_level IDs: Obtain corresponding geographic boundaries (e.g., shapefiles).
