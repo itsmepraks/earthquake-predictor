@@ -11,11 +11,17 @@
 - [x] Download and load USGS Himalayan earthquake data
 - [x] Download and load 2015 Gorkha aftershock dataset (using cleaned NSC data from amitness/earthquakes repo)
 - [x] Download and load NASA terrain elevation data (SRTM GL3 tiles)
-- [ ] Download and load Kaggle supplementary data
-- [ ] Initialize the streamlit app to view the data and interact with its
-- [ ] Standardize schemas across datasets (columns, units, datetime formats)
-- [ ] Handle missing values and outliers, and merge datasets
-- [ ] Engineer features: magnitude thresholds, geographical zoning, terrain attributes
+- [x] Download and load Kaggle supplementary data (DrivenData Building Damage)
+- [x] Initialize the streamlit app to view the data and interact with its
+- [x] Standardize schemas across datasets (columns, units, datetime formats)
+- [x] Handle missing values and outliers, and merge datasets
+
+## Phase 2.5: Feature Engineering
+- [ ] Define and apply magnitude thresholds (e.g., Moderate, Strong, Major) to earthquake data.
+- [ ] Investigate geo_level IDs: Obtain corresponding geographic boundaries (e.g., shapefiles).
+- [ ] Link earthquake events to building locations/zones (spatial join).
+- [ ] Extract terrain attributes (elevation, slope, aspect) for building locations/zones using SRTM data.
+- [ ] Combine earthquake features, building features, and terrain features into a unified dataset.
 
 ## Phase 3: Modeling Pipeline
 - [ ] Define target variables and thresholds
