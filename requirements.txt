@@ -4,3 +4,5 @@ pandas
 numpy
 geopandas
 folium
+requests
+python-dotenv

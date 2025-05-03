@@ -5,10 +5,12 @@
 - [x] Set up Python virtual environment (venv)
 - [x] Create `requirements.txt` with core dependencies (streamlit, scikit-learn, pandas, numpy, geopandas, folium)
 
+*Phase 1 Summary: Successfully set up the project structure, virtual environment, and core dependencies.*
+
 ## Phase 2: Data Acquisition & Preprocessing
-- [ ] Download and load USGS Himalayan earthquake data
-- [ ] Download and load 2015 Gorkha aftershock dataset
-- [ ] Download and load NASA terrain elevation data
+- [x] Download and load USGS Himalayan earthquake data
+- [x] Download and load 2015 Gorkha aftershock dataset (using cleaned NSC data from amitness/earthquakes repo)
+- [x] Download and load NASA terrain elevation data (SRTM GL3 tiles)
 - [ ] Download and load Kaggle supplementary data
 - [ ] Initialize the streamlit app to view the data and interact with its
 - [ ] Standardize schemas across datasets (columns, units, datetime formats)
