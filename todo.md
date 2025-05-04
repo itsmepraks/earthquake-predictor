@@ -19,11 +19,13 @@
 *Phase 2 Summary: Downloaded USGS, NSC, SRTM, and DrivenData (building) datasets. Standardized schemas for earthquake data (USGS/NSC), combined them, and handled missing depth values.*
 
 ## Phase 2.5: Feature Engineering
-- [ ] Define and apply magnitude thresholds (e.g., Moderate, Strong, Major) to earthquake data.
-- [ ] Investigate geo_level IDs: Obtain corresponding geographic boundaries (e.g., shapefiles).
-- [ ] Link earthquake events to building locations/zones (spatial join).
-- [ ] Extract terrain attributes (elevation, slope, aspect) for building locations/zones using SRTM data.
-- [ ] Combine earthquake features, building features, and terrain features into a unified dataset.
+- [x] Define and apply magnitude thresholds (e.g., Moderate, Strong, Major) to earthquake data.
+- [x] Investigate geo_level IDs: Obtain corresponding geographic boundaries (e.g., shapefiles). (Outcome: Found boundaries, but IDs (P-Codes) don't directly match building data geo_level_ids. No coordinates in building data for spatial join. Will proceed using geo_level_ids as primary location features for now.)
+- [x] Link earthquake events to building locations/zones. (Approach: Added features from the main 2015 Gorkha event - magnitude, depth, epicenter - uniformly to all buildings due to lack of specific building coordinates or geo_level_id mapping.)
+- [-] Extract terrain attributes (elevation, slope, aspect) for building locations/zones using SRTM data. (Skipped/Deferred: Cannot extract terrain features per building/zone due to lack of specific coordinates or geo_level_id mapping/boundaries. SRTM data also not yet downloaded.)
+- [x] Combine earthquake features, building features, and terrain features into a unified dataset. (Completed: `data/processed/buildings_features_earthquakes.csv` contains building features, target, and simplified earthquake features. Terrain features omitted.)
+
+*Phase 2.5 Summary: Merged earthquake data, added magnitude categories. Investigated geo IDs, finding no direct link to shapefiles or coordinates; proceeded using geo_level_ids as features. Added main Gorkha event features uniformly to buildings. Skipped terrain feature extraction due to data limitations. Final combined dataset created.*
 
 ## Phase 3: Modeling Pipeline
 - [ ] Define target variables and thresholds
