@@ -9,3 +9,8 @@ python-dotenv
 lightgbm
 joblib
 altair
+rasterio
+rioxarray
+xarray
+rasterstats
+xarray-spatial

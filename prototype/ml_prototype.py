@@ -41,3 +41,4 @@ if __name__ == "__main__":
     df_raw = fetch_data()
     df = preprocess(df_raw)
     train_model(df)
+

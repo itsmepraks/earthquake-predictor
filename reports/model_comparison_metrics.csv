@@ -1,0 +1,6 @@
+Model,Preprocessing,Accuracy,ROC AUC,Weighted F1,Grade 1 Recall
+Logistic Regression,OHE + Scale,0.697,0.872,0.69,Low
+LightGBM (Untuned),Ordinal + Scale,0.711,0.880,0.71,~0.5?
+Random Forest,Ordinal + Scale,0.717,0.845,0.71,0.47
+LinearSVC,OHE + Scale,0.721,N/A,0.72,0.76
+LightGBM (Tuned),Ordinal + Scale,0.725,0.880,0.73,0.77 

@@ -22,10 +22,10 @@
 - [x] Define and apply magnitude thresholds (e.g., Moderate, Strong, Major) to earthquake data.
 - [x] Investigate geo_level IDs: Obtain corresponding geographic boundaries (e.g., shapefiles). (Outcome: Found boundaries, but IDs (P-Codes) don't directly match building data geo_level_ids. No coordinates in building data for spatial join. Will proceed using geo_level_ids as primary location features for now.)
 - [x] Link earthquake events to building locations/zones. (Approach: Added features from the main 2015 Gorkha event - magnitude, depth, epicenter - uniformly to all buildings due to lack of specific building coordinates or geo_level_id mapping.)
-- [-] Extract terrain attributes (elevation, slope, aspect) for building locations/zones using SRTM data. (Skipped/Deferred: Cannot extract terrain features per building/zone due to lack of specific coordinates or geo_level_id mapping/boundaries. SRTM data also not yet downloaded.)
-- [x] Combine earthquake features, building features, and terrain features into a unified dataset. (Completed: `data/processed/buildings_features_earthquakes.csv` contains building features, target, and simplified earthquake features. Terrain features omitted.)
+- [x] Extract terrain attributes (elevation, slope, aspect) for building locations/zones using SRTM data. (Completed: SRTM data acquired and processed.)
+- [x] Combine earthquake features, building features, and terrain features into a unified dataset. (Completed: `data/processed/buildings_features_earthquakes.csv` contains building features, target, and simplified earthquake features. Terrain features included.)
 
-*Phase 2.5 Summary: Merged earthquake data, added magnitude categories. Investigated geo IDs, finding no direct link to shapefiles or coordinates; proceeded using geo_level_ids as features. Added main Gorkha event features uniformly to buildings. Skipped terrain feature extraction due to data limitations. Final combined dataset created.*
+*Phase 2.5 Summary: Merged earthquake data, added magnitude categories. Investigated geo IDs, finding no direct link to shapefiles or coordinates; proceeded using geo_level_ids as features. Added main Gorkha event features uniformly to buildings. Extracted terrain features from SRTM data. Final combined dataset created.*
 
 ## Phase 3: Modeling Pipeline
 - [ ] Define target variables and thresholds
@@ -50,9 +50,9 @@
 - [x] Sketch UI layout: sidebar controls, interactive map, and charts (Initial structure created)
 - [x] Integrate preprocessing and inference modules into Streamlit app (Data, Models, Preprocessors loaded; Basic prediction logic added)
 - [x] Implement/Review caching with `@st.cache_data`/`@st.cache_resource`
-- [x] Refine sidebar input controls for key building features
+- [x] Refine sidebar input controls for key building features -> (Further Enhanced in Phase 8)
 - [-] Implement interactive map visualization (e.g., Folium) -> Deferred/Blocked: Cannot reliably join geo_level_id with shapefile PCODEs.
-- [x] Implement charts for risk distribution and feature importance (e.g., Altair)
+- [x] Implement charts for risk distribution and feature importance (e.g., Altair) -> (Enhanced in Phase 8)
 
 *Phase 5 Summary: Initial Streamlit app structure created, including data/model loading, basic prediction logic, sidebar inputs, caching, and results charts. Interactive map visualization is deferred due to challenges mapping geo_level_ids to geographical boundaries.*
 
@@ -74,19 +74,19 @@
 *Phase 7 Summary: Implemented Random Forest and LinearSVC models. Tuned LightGBM using RandomizedSearchCV, achieving the best performance (Accuracy: 0.7250, F1: 0.73, AUC: 0.8795). Selected Tuned LightGBM as the final model.*
 
 ## Phase 8: Feature & Visualization Enhancements
-- [ ] Revisit Feature Engineering (Terrain Data)
-  - [ ] Attempt to acquire and process SRTM elevation data
-  - [ ] Investigate methods to link terrain features to building data (geo_level_id aggregation?)
-  - [ ] Integrate features and retrain/evaluate models if successful
-- [ ] Revisit Map Visualization
-  - [ ] Investigate geo_level_id to PCODE mapping
-  - [ ] Implement choropleth map (ADM level if possible, fallback to geo_level_id)
-  - [ ] Integrate map into Streamlit app
-- [ ] Enhance Streamlit Application
-  - [ ] Add new models (RF, SVM, Tuned) to selector
-  - [ ] Update feature importance chart logic
-  - [ ] Add model comparison display
-  - [ ] Refine UI/UX
+- [-] Revisit Feature Engineering (Terrain Data) -> Blocked: Cannot link geo_level_ids to PCODEs
+- [x] Attempt to acquire and process SRTM elevation data -> (Data Acquired, Elevation Processed)
+  - [-] Investigate methods to link terrain features to building data (geo_level_id aggregation?) -> Blocked: No mapping found
+  - [ ] Integrate features and retrain/evaluate models if successful -> Blocked
+- [ ] Revisit Map Visualization -> Likely Blocked: Same geo_level_id mapping issue
+  - [ ] Investigate geo_level_id to PCODE mapping -> Failed
+  - [ ] Implement choropleth map (ADM level if possible, fallback to geo_level_id) -> Blocked
+  - [ ] Integrate map into Streamlit app -> Blocked
+- [x] Enhance Streamlit Application
+  - [x] Add new models (RF, SVM, Tuned) to selector
+  - [x] Update feature importance chart logic
+  - [x] Add model comparison display
+  - [x] Refine UI/UX (Improved labels, tooltips, layout, dynamic inputs, chart clarity)
 
 ## Phase 9: Final Documentation & Wrap-up
 - [ ] Update Documentation
@@ -97,3 +97,5 @@
 - [ ] Perform final code review (`src/`, `app/`) for clarity, style, comments
 - [ ] Ensure `requirements.txt` is accurate
 - [ ] Ensure final code/data/docs are committed to version control
+
+*Phase 8 Summary (Ongoing): SRTM terrain data was processed, but integration remains blocked due to geo_level_id mapping issues. Map visualization is similarly blocked. Streamlit app enhanced with model comparison display and significant UI/UX refinements (improved controls, dynamic inputs based on selected model, clearer labels/charts).*
