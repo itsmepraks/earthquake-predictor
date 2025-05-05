@@ -47,14 +47,53 @@
 *Phase 4 Summary: Analyzed the baseline Logistic Regression model (accuracy ~69.7%, AUC ~0.872), identifying location as the key driver. Addressed convergence by switching to 'saga' solver. Implemented and evaluated a LightGBM model (accuracy ~71.1%, AUC ~0.880) using Ordinal Encoding, which showed modest performance improvement and better utilization of building features compared to the baseline. Documented findings in `whitepaper.md`.*
 
 ## Phase 5: Streamlit Application Development
-- [/] Sketch UI layout: sidebar controls, interactive map, and charts (Initial structure created)
+- [x] Sketch UI layout: sidebar controls, interactive map, and charts (Initial structure created)
 - [x] Integrate preprocessing and inference modules into Streamlit app (Data, Models, Preprocessors loaded; Basic prediction logic added)
 - [x] Implement/Review caching with `@st.cache_data`/`@st.cache_resource`
 - [x] Refine sidebar input controls for key building features
 - [-] Implement interactive map visualization (e.g., Folium) -> Deferred/Blocked: Cannot reliably join geo_level_id with shapefile PCODEs.
 - [x] Implement charts for risk distribution and feature importance (e.g., Altair)
 
+*Phase 5 Summary: Initial Streamlit app structure created, including data/model loading, basic prediction logic, sidebar inputs, caching, and results charts. Interactive map visualization is deferred due to challenges mapping geo_level_ids to geographical boundaries.*
+
 ## Phase 6: Documentation & Version Control
-- [ ] Maintain and update `todo.md` with completed and pending tasks
-- [ ] Create and maintain `data/data_dictionary.md`
-- [x] Update `whitepaper.md` with methodology, initial results, and app description
+- [x] Maintain and update `todo.md` with completed and pending tasks
+- [x] Create and maintain `data/data_dictionary.md`
+- [x] Update `whitepaper.md` with methodology, initial results, and app description -> (Reviewed, up-to-date)
+
+*Phase 6 Summary: Updated todo.md to reflect current status. Created data_dictionary.md with column descriptions for the primary dataset. Reviewed whitepaper.md and confirmed it includes recent modeling and app developments.*
+
+## Phase 7: Advanced Modeling & Hyperparameter Tuning
+- [x] Implement Random Forest model (train, eval, feature importance)
+- [x] Implement SVM model (train, eval, feature importance if applicable)
+- [x] Perform hyperparameter tuning (Grid/RandomizedSearchCV) on top models -> (LGBM Tuned)
+- [ ] (Optional/Deferred) Tune Random Forest model
+- [x] Compare all models (LogReg, LGBM, RF, SVM, Tuned LGBM) and select final model(s) -> (Tuned LGBM Selected)
+- [x] Document model comparison and selection rationale in `whitepaper.md`
+
+*Phase 7 Summary: Implemented Random Forest and LinearSVC models. Tuned LightGBM using RandomizedSearchCV, achieving the best performance (Accuracy: 0.7250, F1: 0.73, AUC: 0.8795). Selected Tuned LightGBM as the final model.*
+
+## Phase 8: Feature & Visualization Enhancements
+- [ ] Revisit Feature Engineering (Terrain Data)
+  - [ ] Attempt to acquire and process SRTM elevation data
+  - [ ] Investigate methods to link terrain features to building data (geo_level_id aggregation?)
+  - [ ] Integrate features and retrain/evaluate models if successful
+- [ ] Revisit Map Visualization
+  - [ ] Investigate geo_level_id to PCODE mapping
+  - [ ] Implement choropleth map (ADM level if possible, fallback to geo_level_id)
+  - [ ] Integrate map into Streamlit app
+- [ ] Enhance Streamlit Application
+  - [ ] Add new models (RF, SVM, Tuned) to selector
+  - [ ] Update feature importance chart logic
+  - [ ] Add model comparison display
+  - [ ] Refine UI/UX
+
+## Phase 9: Final Documentation & Wrap-up
+- [ ] Update Documentation
+  - [ ] Update `whitepaper.md` comprehensively (advanced models, tuning, features, map, final summary)
+  - [ ] Update `data/data_dictionary.md` (if new features added)
+  - [ ] Mark Phase 7-9 tasks complete in `todo.md`
+  - [ ] Create/Update top-level `README.md` (project overview, setup, run instructions)
+- [ ] Perform final code review (`src/`, `app/`) for clarity, style, comments
+- [ ] Ensure `requirements.txt` is accurate
+- [ ] Ensure final code/data/docs are committed to version control

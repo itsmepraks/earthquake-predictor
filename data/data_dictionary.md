@@ -14,74 +14,57 @@ This document describes the datasets and features used in the Nepal Earthquake R
     *   Source: DrivenData competition.
     *   Description: Original training values (`train_values.csv`), training labels (`train_labels.csv`), and test values (`test_values.csv`). Used as the basis for the primary building dataset.
 
-## Feature Descriptions (`buildings_features_earthquakes.csv`)
+## Processed Data: `buildings_features_earthquakes.csv`
 
-*(Based primarily on DrivenData competition description)*
+This file contains the merged and preprocessed data used for model training and evaluation. It combines building structure information with features derived from the main 2015 Gorkha earthquake event.
 
-**Note on Categorical Codes:** The DrivenData source states that single-letter codes for categorical variables were obfuscated and randomly assigned. While meanings for `foundation_type` have been inferred from external context, other codes (`land_surface_condition`, `roof_type`, `ground_floor_type`, `other_floor_type`, `position`, `plan_configuration`, `legal_ownership_status`) should be treated as opaque identifiers unless further verified.
+| Column Name                           | Description                                                                 | Data Type        | Source/Notes                                     |
+|---------------------------------------|-----------------------------------------------------------------------------|------------------|--------------------------------------------------|
+| `building_id`                         | Unique identifier for each building                                         | Integer          | DrivenData Building Dataset                      |
+| `geo_level_1_id`                      | Geographic region ID (Level 1 - Largest)                                    | Integer          | DrivenData Building Dataset                      |
+| `geo_level_2_id`                      | Geographic region ID (Level 2)                                              | Integer          | DrivenData Building Dataset                      |
+| `geo_level_3_id`                      | Geographic region ID (Level 3 - Smallest)                                   | Integer          | DrivenData Building Dataset                      |
+| `count_floors_pre_eq`                 | Number of floors before the earthquake                                      | Integer          | DrivenData Building Dataset                      |
+| `age`                                 | Age of the building (years)                                                 | Integer          | DrivenData Building Dataset                      |
+| `area_percentage`                     | Normalized area of the building footprint                                   | Float            | DrivenData Building Dataset                      |
+| `height_percentage`                   | Normalized height of the building                                           | Float            | DrivenData Building Dataset                      |
+| `land_surface_condition`              | Condition of the land surface where the building is located                 | Categorical      | DrivenData Building Dataset (n: Flat, o: Moderate slope, t: Steep slope) |
+| `foundation_type`                     | Type of foundation used for the building                                  | Categorical      | DrivenData Building Dataset (h, i, r, u, w)     |
+| `roof_type`                           | Type of roof used for the building                                          | Categorical      | DrivenData Building Dataset (n, q, x)           |
+| `ground_floor_type`                 | Material used for the ground floor                                          | Categorical      | DrivenData Building Dataset (f, m, v, x, z)     |
+| `other_floor_type`                    | Material used for upper floors                                              | Categorical      | DrivenData Building Dataset (j, q, s, x)        |
+| `position`                            | Position of the building relative to others                                 | Categorical      | DrivenData Building Dataset (j, o, s, t)        |
+| `plan_configuration`                  | Shape of the building plan                                                  | Categorical      | DrivenData Building Dataset (a, c, d, f, m, n, o, q, s, u) |
+| `has_superstructure_adobe_mud`        | Binary flag: Building superstructure includes Adobe/Mud                   | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_mud_mortar_stone` | Binary flag: Building superstructure includes Mud Mortar Stone            | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_stone_flag`       | Binary flag: Building superstructure includes Stone Flag                  | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_cement_mortar_stone`| Binary flag: Building superstructure includes Cement Mortar Stone         | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_mud_mortar_brick` | Binary flag: Building superstructure includes Mud Mortar Brick            | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_cement_mortar_brick`| Binary flag: Building superstructure includes Cement Mortar Brick         | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_timber`           | Binary flag: Building superstructure includes Timber                      | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_bamboo`           | Binary flag: Building superstructure includes Bamboo                      | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_rc_non_engineered`| Binary flag: Building superstructure includes RC (Non-Engineered)         | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_rc_engineered`    | Binary flag: Building superstructure includes RC (Engineered)             | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_superstructure_other`            | Binary flag: Building superstructure includes Other materials             | Binary (0/1)     | DrivenData Building Dataset                      |
+| `legal_ownership_status`              | Legal ownership status of the land                                          | Categorical      | DrivenData Building Dataset (a, r, v, w)        |
+| `count_families`                      | Number of families living in the building                                   | Integer          | DrivenData Building Dataset                      |
+| `has_secondary_use`                   | Binary flag: Building has a secondary use                                   | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_agriculture`       | Binary flag: Secondary use is Agriculture                                   | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_hotel`             | Binary flag: Secondary use is Hotel                                         | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_rental`            | Binary flag: Secondary use is Rental                                        | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_institution`     | Binary flag: Secondary use is Institution                                   | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_school`            | Binary flag: Secondary use is School                                        | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_industry`          | Binary flag: Secondary use is Industry                                      | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_health_post`     | Binary flag: Secondary use is Health Post                                 | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_gov_office`        | Binary flag: Secondary use is Government Office                             | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_use_police`        | Binary flag: Secondary use is Police Station                                | Binary (0/1)     | DrivenData Building Dataset                      |
+| `has_secondary_use_other`             | Binary flag: Secondary use is Other                                         | Binary (0/1)     | DrivenData Building Dataset                      |
+| `damage_grade`                        | Damage grade assigned after the earthquake (Target Variable)              | Integer (1, 2, 3)| DrivenData Building Dataset (1: Low, 2: Medium, 3: High/Complete) |
+| `main_eq_magnitude`                   | Magnitude of the main Gorkha earthquake (Mw 7.8)                            | Float            | Engineered Feature (USGS/NSC Data)             |
+| `main_eq_depth`                       | Depth of the main Gorkha earthquake (km)                                  | Float            | Engineered Feature (USGS/NSC Data)             |
+| `main_eq_epicenter_lat`               | Latitude of the main Gorkha earthquake epicenter                            | Float            | Engineered Feature (USGS/NSC Data)             |
+| `main_eq_epicenter_lon`               | Longitude of the main Gorkha earthquake epicenter                           | Float            | Engineered Feature (USGS/NSC Data)             |
 
-### Identifiers
-*   `building_id` (int): Unique identifier for each building.
+## Raw Data Sources
 
-### Location
-*   `geo_level_1_id` (int): Geographic region ID, level 1 (largest region, 0-30).
-*   `geo_level_2_id` (int): Geographic region ID, level 2 (medium region, 0-1427). *Potentially corresponds to ADM2 shapefile PCODE.*
-*   `geo_level_3_id` (int): Geographic region ID, level 3 (most specific sub-region, 0-12567).
-
-### Building Structure & Age
-*   `count_floors_pre_eq` (int): Number of floors before the earthquake.
-*   `age` (int): Age of the building in years.
-*   `area_percentage` (int): Normalized area of the building footprint.
-*   `height_percentage` (int): Normalized height of the building.
-*   `land_surface_condition` (categorical): Surface condition of the land. (Codes: `n`, `o`, `t` - meaning unknown/obfuscated).
-*   `foundation_type` (categorical): Type of foundation.
-    *   `h`: Pile Foundation
-    *   `i`: Isolated Foundation
-    *   `r`: Raft/Mat Foundation
-    *   `u`: Under-reamed Foundation
-    *   `w`: Well Foundation
-*   `roof_type` (categorical): Type of roof. (Codes: `n`, `q`, `x` - meaning unknown/obfuscated).
-*   `ground_floor_type` (categorical): Type of ground floor. (Codes: `f`, `m`, `v`, `x`, `z` - meaning unknown/obfuscated).
-*   `other_floor_type` (categorical): Type of construction used in upper floors (excluding roof). (Codes: `j`, `q`, `s`, `x` - meaning unknown/obfuscated).
-*   `position` (categorical): Position of the building. (Codes: `j`, `o`, `s`, `t` - meaning unknown/obfuscated).
-*   `plan_configuration` (categorical): Building plan configuration. (Codes: `a`, `c`, `d`, `f`, `m`, `n`, `o`, `q`, `s`, `u` - meaning unknown/obfuscated).
-
-### Superstructure Materials (Binary Flags)
-*   `has_superstructure_adobe_mud` (binary): Superstructure made of Adobe/Mud (1=Yes, 0=No).
-*   `has_superstructure_mud_mortar_stone` (binary): Superstructure made of Mud Mortar - Stone.
-*   `has_superstructure_stone_flag` (binary): Superstructure made of Stone.
-*   `has_superstructure_cement_mortar_stone` (binary): Superstructure made of Cement Mortar - Stone.
-*   `has_superstructure_mud_mortar_brick` (binary): Superstructure made of Mud Mortar - Brick.
-*   `has_superstructure_cement_mortar_brick` (binary): Superstructure made of Cement Mortar - Brick.
-*   `has_superstructure_timber` (binary): Superstructure made of Timber.
-*   `has_superstructure_bamboo` (binary): Superstructure made of Bamboo.
-*   `has_superstructure_rc_non_engineered` (binary): Superstructure made of non-engineered reinforced concrete.
-*   `has_superstructure_rc_engineered` (binary): Superstructure made of engineered reinforced concrete.
-*   `has_superstructure_other` (binary): Superstructure made of other materials.
-
-### Ownership & Usage
-*   `legal_ownership_status` (categorical): Legal ownership status. (Codes: `a`, `r`, `v`, `w` - meaning unknown/obfuscated).
-*   `count_families` (int): Number of families living in the building.
-*   `has_secondary_use` (binary): Building has secondary use (1=Yes, 0=No).
-*   `has_secondary_use_agriculture` (binary): Secondary use: Agriculture.
-*   `has_secondary_use_hotel` (binary): Secondary use: Hotel.
-*   `has_secondary_use_rental` (binary): Secondary use: Rental.
-*   `has_secondary_use_institution` (binary): Secondary use: Institution.
-*   `has_secondary_use_school` (binary): Secondary use: School.
-*   `has_secondary_use_industry` (binary): Secondary use: Industry.
-*   `has_secondary_use_health_post` (binary): Secondary use: Health Post.
-*   `has_secondary_use_gov_office` (binary): Secondary use: Government Office.
-*   `has_secondary_use_use_police` (binary): Secondary use: Police Station.
-*   `has_secondary_use_other` (binary): Other secondary use.
-
-### Added Earthquake Features (Simplified)
-*   `main_eq_magnitude` (float): Magnitude of the main 2015 Gorkha shock (applied uniformly).
-*   `main_eq_depth` (float): Depth of the main 2015 Gorkha shock (applied uniformly).
-*   `main_eq_epicenter_lat` (float): Latitude of the main 2015 Gorkha shock epicenter (applied uniformly).
-*   `main_eq_epicenter_lon` (float): Longitude of the main 2015 Gorkha shock epicenter (applied uniformly).
-
-### Target Variable
-*   `damage_grade` (int): Damage grade assigned after the earthquake.
-    *   `1`: Low damage
-    *   `2`: Medium damage
-    *   `3`: Complete destruction / Collapse 
+*(Placeholder for descriptions of raw datasets like USGS earthquake catalog, NSC aftershock data, SRTM elevation, original DrivenData files, etc.)* 

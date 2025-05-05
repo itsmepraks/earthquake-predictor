@@ -79,6 +79,46 @@ To explore improvements over the baseline, we implemented a LightGBM model. Key 
 
 **Conclusion:** The LightGBM model provided a modest improvement in accuracy and AUC compared to the baseline Logistic Regression, while being significantly faster to train. It also appears slightly better at incorporating building feature information alongside the dominant location features. Further gains might be possible through hyperparameter tuning of the LightGBM model.
 
+**Random Forest Model Results:**
+
+A Random Forest Classifier (`sklearn.ensemble.RandomForestClassifier`) was trained using the same OrdinalEncoder preprocessing as the LightGBM model.
+- **Accuracy:** ~71.7%
+- **ROC AUC (Macro Avg, OvR):** ~0.845
+- **Weighted F1-Score:** ~0.71
+- **Training Time:** ~7 seconds
+- **Observations:** Achieved slightly higher accuracy than the untuned LightGBM but a lower AUC. Feature importances showed a similar pattern, dominated by geographic IDs but with building features contributing. Recall for Grade 1 (Low Damage) was poor (0.47).
+
+**LinearSVC Model Results:**
+
+A Linear Support Vector Classifier (`sklearn.svm.LinearSVC`) was trained using the OneHotEncoder + StandardScaler preprocessing pipeline from the baseline model.
+- **Accuracy:** ~72.1%
+- **ROC AUC (Macro Avg, OvR):** N/A (Requires probability calibration)
+- **Weighted F1-Score:** ~0.72
+- **Training Time:** ~1 min 48 seconds
+- **Observations:** Achieved the highest accuracy among the untuned complex models. Showed very good recall for Grade 1 (0.76) but poor precision (0.50). Training time was significantly longer than tree-based models due to high dimensionality from OHE. Feature importance (coefficients) strongly emphasized `geo_level_3_id`.
+
+**Hyperparameter Tuning (LightGBM):**
+
+Given its strong baseline performance and speed, the LightGBM model was selected for hyperparameter optimization using `RandomizedSearchCV` (20 iterations, 3-fold CV, optimizing for accuracy).
+- **Best Parameters:** (`n_estimators`: 800, `learning_rate`: ~0.20, `num_leaves`: 40, `max_depth`: 12, `reg_alpha`: ~0.16, `reg_lambda`: ~0.16, `colsample_bytree`: ~0.75, `subsample`: ~0.62)
+- **Accuracy:** ~72.5%
+- **ROC AUC (Macro Avg, OvR):** ~0.880
+- **Weighted F1-Score:** ~0.73
+- **Training Time (Search):** ~16.4 minutes
+- **Observations:** The tuned model achieved the highest accuracy and weighted F1-score. It maintained the excellent AUC score of the untuned version and demonstrated a better balance of precision/recall across classes, notably improving Grade 1 recall (0.77) compared to untuned tree models while maintaining better precision (0.53) than LinearSVC. Feature importance analysis showed increased contribution from building characteristics compared to the untuned LGBM.
+
+**Model Comparison Summary & Selection:**
+
+| Model                 | Preprocessing   | Accuracy | ROC AUC | Weighted F1 | Grade 1 Recall | Training Time (Approx) |
+| :-------------------- | :-------------- | :------- | :------ | :---------- | :------------- | :--------------------- |
+| Logistic Regression   | OHE + Scale     | 0.697    | 0.872   | 0.69        | Low            | > 2 min                |
+| LightGBM (Untuned)    | Ordinal + Scale | 0.711    | 0.880   | 0.71        | ~0.5?          | ~6 sec                 |
+| Random Forest         | Ordinal + Scale | 0.717    | 0.845   | 0.71        | 0.47           | ~7 sec                 |
+| LinearSVC             | OHE + Scale     | 0.721    | N/A     | 0.72        | 0.76           | ~1 min 48 sec          |
+| **LightGBM (Tuned)**  | Ordinal + Scale | **0.725**| 0.880   | **0.73**    | 0.77           | **Fast Inference**     |
+
+Based on the evaluation metrics, the **Tuned LightGBM model** was selected as the final model for this phase. It provides the best combination of accuracy, weighted F1-score, and AUC, demonstrating a good balance in classifying the different damage grades. While LinearSVC had slightly higher recall for Grade 1, the Tuned LightGBM achieved comparable recall with better precision and superior performance on other metrics. The fast inference time of LightGBM is also advantageous for the Streamlit application.
+
 ## 7. Streamlit Application Prototype
 
 To provide an interactive interface for exploring the trained models and their predictions, a prototype web application was developed using Streamlit.
