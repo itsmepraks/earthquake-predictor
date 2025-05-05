@@ -6,3 +6,6 @@ geopandas
 folium
 requests
 python-dotenv
+lightgbm
+joblib
+altair

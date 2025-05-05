@@ -29,21 +29,32 @@
 
 ## Phase 3: Modeling Pipeline
 - [ ] Define target variables and thresholds
-- [ ] Implement data splitting & cross-validation framework
-- [ ] Train logistic regression baseline model
+- [x] Implement data splitting & cross-validation framework
+- [x] Train logistic regression baseline model
 - [ ] Map probabilities to low/medium/high risk categories
-- [ ] Evaluate baseline model (ROC AUC, accuracy, confusion matrix)
+- [x] Evaluate baseline model (ROC AUC, accuracy, confusion matrix)
+
+*Phase 3 Summary: Established the modeling pipeline. Loaded and preprocessed data (scaling numerical, one-hot encoding categorical with sparse output). Split data into train/test sets. Trained a baseline Logistic Regression model and performed initial evaluation (accuracy, AUC, confusion matrix, classification report).*
 
 ## Phase 4: Model Evaluation & Tuning
-- [ ] Analyze performance metrics and feature importances
-- [ ] Refine probability thresholds and risk class bins
-- [ ] Document insights in `whitepaper.md` and update `proposal.md` if needed
+- [-] Analyze performance metrics and feature importances -> (Completed Initial Analysis)
+- [x] Address convergence issues
+- [x] Refine probability thresholds and risk class bins
+- [x] Document insights in `whitepaper.md` and update `proposal.md` if needed
+- [-] Analyze feature importance -> (Completed Initial Analysis)
+- [x] Implement and evaluate LightGBM model
+
+*Phase 4 Summary: Analyzed the baseline Logistic Regression model (accuracy ~69.7%, AUC ~0.872), identifying location as the key driver. Addressed convergence by switching to 'saga' solver. Implemented and evaluated a LightGBM model (accuracy ~71.1%, AUC ~0.880) using Ordinal Encoding, which showed modest performance improvement and better utilization of building features compared to the baseline. Documented findings in `whitepaper.md`.*
 
 ## Phase 5: Streamlit Application Development
-- [ ] Sketch UI layout: sidebar controls, interactive map, and charts
-- [ ] Integrate preprocessing and inference modules into Streamlit app
-- [ ] Implement caching with `@st.cache_data`
+- [/] Sketch UI layout: sidebar controls, interactive map, and charts (Initial structure created)
+- [x] Integrate preprocessing and inference modules into Streamlit app (Data, Models, Preprocessors loaded; Basic prediction logic added)
+- [x] Implement/Review caching with `@st.cache_data`/`@st.cache_resource`
+- [x] Refine sidebar input controls for key building features
+- [-] Implement interactive map visualization (e.g., Folium) -> Deferred/Blocked: Cannot reliably join geo_level_id with shapefile PCODEs.
+- [x] Implement charts for risk distribution and feature importance (e.g., Altair)
 
 ## Phase 6: Documentation & Version Control
 - [ ] Maintain and update `todo.md` with completed and pending tasks
-- [ ] Update `whitepaper.md` with methodology and initial results
+- [ ] Create and maintain `data/data_dictionary.md`
+- [x] Update `whitepaper.md` with methodology, initial results, and app description
