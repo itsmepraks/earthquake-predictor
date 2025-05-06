@@ -86,7 +86,7 @@
   - [x] Add new models (RF, SVM, Tuned) to selector
   - [x] Update feature importance chart logic
   - [x] Add model comparison display
-  - [x] Refine UI/UX (Improved labels, tooltips, layout, dynamic inputs, chart clarity)
+  - [x] Refine UI/UX (Improved labels, tooltips, layout, dynamic inputs, chart clarity, Streamlit sidebar refactored with st.form and st.expander for grouped inputs, user-friendly categorical labels, dynamic feature display based on model, input summary on prediction, and main panel tabs for analysis sections)
 
 ## Phase 9: Final Documentation & Wrap-up
 - [ ] Update Documentation
@@ -98,4 +98,4 @@
 - [ ] Ensure `requirements.txt` is accurate
 - [ ] Ensure final code/data/docs are committed to version control
 
-*Phase 8 Summary (Ongoing): SRTM terrain data was processed, but integration remains blocked due to geo_level_id mapping issues. Map visualization is similarly blocked. Streamlit app enhanced with model comparison display and significant UI/UX refinements (improved controls, dynamic inputs based on selected model, clearer labels/charts).*
+*Phase 8 Summary (Ongoing): SRTM terrain data was processed, but integration remains blocked due to geo_level_id mapping issues. Map visualization is similarly blocked. Streamlit app enhanced with model comparison display and significant UI/UX refinements, including a major sidebar overhaul (st.form, st.expander, dynamic/clearer inputs and labels, input summary, tabbed analysis) for better organization and usability.*
