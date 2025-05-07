@@ -244,32 +244,28 @@ def predict_risk(input_df, model_name, models_dict):
     model = model_info["model"]
     preprocessor = model_info["preprocessor"]
     # Get risk map safely
-    risk_map = RISK_MAP.get(model_name, {0: "Unknown"}) # Default to handle potential missing keys
+    risk_map_for_model = RISK_MAP.get(model_name, {0: "Unknown"}) # Default to handle potential missing keys
 
     try:
         input_processed_np = preprocessor.transform(input_df)
-        processed_feature_names = _get_feature_names(preprocessor, list(input_df.columns))
 
-        # Convert to dense if sparse, then create DataFrame
-        if hasattr(input_processed_np, "toarray"): # Check for sparse matrix
-            input_processed_dense = input_processed_np.toarray()
-        else: # Assumes it's already a NumPy array or compatible type for DataFrame
-            input_processed_dense = input_processed_np
+        probabilities = None
+        prediction_numeric_from_predict = None
 
-        if len(processed_feature_names) == input_processed_dense.shape[1]:
-            input_processed_df = pd.DataFrame(input_processed_dense, columns=processed_feature_names)
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(input_processed_np)
+            prediction_numeric = np.argmax(probabilities, axis=1)
         else:
-            st.error(f"Mismatch in predict_risk: processed feature names ({len(processed_feature_names)}) vs data columns ({input_processed_dense.shape[1]}) for {model_name}. Using generic column names.")
-            input_processed_df = pd.DataFrame(input_processed_dense) # Fallback to generic column names
+            prediction_numeric = model.predict(input_processed_np)
 
-        predictions = model.predict(input_processed_df)
-        risk_categories = [risk_map.get(pred, "Unknown") for pred in predictions]
-        explanation_values = None # Placeholder for now
-        return risk_categories, explanation_values
+        if hasattr(model, "predict"): 
+            prediction_numeric_from_predict = model.predict(input_processed_np)
 
+        prediction_label = risk_map_for_model.get(prediction_numeric[0], "Unknown Risk")
+
+        return prediction_label, probabilities
     except Exception as e:
         st.error(f"Error during prediction for {model_name}: {e}")
-        # st.text(traceback.format_exc()) # Uncomment for detailed prediction error
         return None, None
 
 # --- Visualization Functions ---
@@ -325,7 +321,6 @@ def plot_risk_distribution(df, model_name, _models_dict, feature_columns):
         return chart
     except Exception as e:
         st.error(f"Error generating risk distribution plot for {model_name}: {e}")
-        # st.text(traceback.format_exc())
         return None
 
 @st.cache_data # Cache plots based on model name and feature columns list tuple
@@ -341,8 +336,6 @@ def plot_feature_importance(model_name, _models_dict, _feature_columns_tuple, to
 
     importances = None
     feature_names = list(_feature_columns_tuple) # Convert tuple back to list for manipulation
-
-    # st.write(f"Model type for feature importance: {type(model)}") # Debugging model type
 
     if hasattr(model, 'feature_importances_'):
         importances = model.feature_importances_
@@ -367,8 +360,6 @@ def plot_feature_importance(model_name, _models_dict, _feature_columns_tuple, to
     if preprocessor:
         try:
             processed_feature_names = _get_feature_names(preprocessor, feature_names)
-            # st.write(f"Original features: {feature_names}")
-            # st.write(f"Processed features from preprocessor: {processed_feature_names}")
 
             if len(processed_feature_names) == len(importances):
                 feature_names = processed_feature_names
@@ -391,11 +382,6 @@ def plot_feature_importance(model_name, _models_dict, _feature_columns_tuple, to
         if len(feature_names) != len(importances):
             st.error(f"Critical mismatch (no preprocessor): Original feature count ({len(feature_names)}) differs from importance count ({len(importances)}). Cannot plot.")
             return None
-
-
-    # st.write(f"Final feature names for importance plot: {feature_names}")
-    # st.write(f"Importances values: {importances}")
-
 
     # Create DataFrame for plotting
     importance_df = pd.DataFrame({'feature': feature_names, 'importance': importances})
@@ -474,7 +460,7 @@ def main():
         st.sidebar.warning(f"Could not determine exact feature set for {selected_model_name} from preprocessor. Using a general set. Predictions might be affected if this is incorrect.")
         APP_FEATURE_COLUMNS = potential_feature_cols
     
-    # st.sidebar.info(f"DEBUG: Features for {selected_model_name}: {APP_FEATURE_COLUMNS}") # REMOVE Temporary debug line
+    st.sidebar.info(f"DEBUG: Features for {selected_model_name}: {APP_FEATURE_COLUMNS}") # ADDED DEBUG LINE
 
     input_data = {}
 
@@ -702,12 +688,37 @@ def main():
         # Filter input_data to only include features expected by the model (APP_FEATURE_COLUMNS)
         # This is crucial because input_data might temporarily hold keys for all possible features
         # while APP_FEATURE_COLUMNS is specific to the selected model.
-        filtered_input_data = {k: v for k, v in input_data.items() if k in APP_FEATURE_COLUMNS}
+        
+        # Start with a copy of the UI inputs that are relevant
+        current_model_inputs = {k: v for k, v in input_data.items() if k in APP_FEATURE_COLUMNS}
 
-        # Create a DataFrame from the filtered inputs
+        # Ensure all features expected by the model are present, providing defaults for missing numerical ones
+        # This is particularly important for features not set by the UI (e.g., earthquake params for some models)
+        # or features that might become NaN due to UI logic (like height_percentage vs area_percentage).
+        for feature_name in APP_FEATURE_COLUMNS:
+            if feature_name not in current_model_inputs or pd.isna(current_model_inputs.get(feature_name)):
+                # Define correct earthquake parameter values
+                eq_params = {
+                    'main_eq_magnitude': 7.8,
+                    'main_eq_depth': 15.0,  # Approximate
+                    'main_eq_epicenter_lat': 28.23, # Approximate
+                    'main_eq_epicenter_lon': 84.73  # Approximate
+                }
+                if feature_name in eq_params:
+                    current_model_inputs[feature_name] = eq_params[feature_name]
+                else:
+                    # Existing logic for other missing numerical features
+                    original_dtype = data[feature_name].dtype if feature_name in data else None
+                    if pd.api.types.is_numeric_dtype(original_dtype) or original_dtype is None: # If type is unknown, assume numeric for default
+                         current_model_inputs[feature_name] = 0.0
+                    # If it was a categorical feature missing, it would likely cause issues earlier or in OHE.
+                    # For now, this primarily targets missing numerical features like height_percentage.
+
+
+        # Create a DataFrame from the potentially augmented inputs
         # Ensure the order of columns matches APP_FEATURE_COLUMNS
         try:
-            input_df = pd.DataFrame([filtered_input_data], columns=APP_FEATURE_COLUMNS)
+            input_df = pd.DataFrame([current_model_inputs], columns=APP_FEATURE_COLUMNS)
             # Convert boolean features explicitly to int (0 or 1) if preprocessor expects numerical
             # This depends on how your preprocessor handles booleans.
             # If OneHotEncoder handles bools, this might not be needed.
@@ -721,30 +732,35 @@ def main():
 
         except Exception as e:
             st.error(f"Error creating input DataFrame: {e}. Check feature consistency.")
-            st.error(f"Filtered input data: {filtered_input_data}")
+            st.error(f"Filtered input data: {current_model_inputs}")
             st.error(f"Expected columns by preprocessor: {APP_FEATURE_COLUMNS}")
             input_df = None # Ensure it's None if creation fails
 
         if input_df is not None:
             prediction, _ = predict_risk(input_df, selected_model_name, MODELS) # Ignoring SHAP for now
 
-            if prediction:
+            if prediction: # prediction is now a string like "Medium"
                 st.subheader(f"Predicted Risk ({selected_model_name}):")
-                # Displaying the first prediction as we are predicting for a single instance
-                st.metric(label="Damage Risk Level", value=str(prediction[0]))
-                if prediction[0] == "High":
+                # Displaying the prediction string directly
+                st.metric(label="Damage Risk Level", value=prediction)
+                
+                if prediction == "High":
                     st.error("🔴 High Risk Predicted")
-                elif prediction[0] == "Medium":
+                elif prediction == "Medium":
                     st.warning("🟡 Medium Risk Predicted")
-                else:
+                elif prediction == "Low": # Explicitly check for Low
                     st.success("🟢 Low Risk Predicted")
+                else: # Handle unexpected prediction string
+                    st.error(f"❔ Unknown Risk Predicted: {prediction}")
 
                 st.markdown("---")
                 st.subheader("Input Summary:")
                 # Display the input data used for prediction
                 # Create a DataFrame for better display, transpose for readability
-                input_summary_df = pd.DataFrame.from_dict(filtered_input_data, orient='index', columns=['Value'])
+                input_summary_df = pd.DataFrame.from_dict(current_model_inputs, orient='index', columns=['Value'])
                 input_summary_df.index.name = "Feature"
+                # Convert all values in the 'Value' column to strings for robust display
+                input_summary_df['Value'] = input_summary_df['Value'].astype(str)
                 st.dataframe(input_summary_df, use_container_width=True)
 
             else:

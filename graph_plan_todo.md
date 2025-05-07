@@ -63,17 +63,17 @@ To enhance the whitepaper with visual representations of data distributions, mod
     - Path: `reports/images/fig10_comparative_feature_importance.png`
 
 ### Section 5: Streamlit Application
-- [x] **Screenshot: Main Input Sidebar:**
-    - Type: Image (Screenshot)
+- [ ] **Screenshot: Main Input Sidebar:**
+    - Type: Image (Screenshot) - Placeholder text added in whitepaper.md
     - Purpose: Showcase application's user input interface.
-- [x] **Screenshot: Example Prediction Output:**
-    - Type: Image (Screenshot)
+- [ ] **Screenshot: Example Prediction Output:**
+    - Type: Image (Screenshot) - Placeholder text added in whitepaper.md
     - Purpose: Illustrate how predictions are presented to the user.
-- [x] **Screenshot: Risk Distribution Chart (from App):**
-    - Type: Image (Screenshot)
+- [ ] **Screenshot: Risk Distribution Chart (from App):**
+    - Type: Image (Screenshot) - Placeholder text added in whitepaper.md
     - Purpose: Show an example of in-app analytics.
-- [x] **Screenshot: Feature Importance Chart (from App):**
-    - Type: Image (Screenshot)
+- [ ] **Screenshot: Feature Importance Chart (from App):**
+    - Type: Image (Screenshot) - Placeholder text added in whitepaper.md
     - Purpose: Show an example of in-app model explainability.
 
 ### Appendix / Advanced Discussion (Optional)

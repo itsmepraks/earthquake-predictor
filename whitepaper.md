@@ -9,6 +9,7 @@ This report details the development of a machine learning system to predict buil
 2.  [Data Sources and Preparation](#2-data-sources-and-preparation)
     1.  [Data Sources](#21-data-sources)
     2.  [Data Merging and Preprocessing](#22-data-merging-and-preprocessing)
+    3.  [Exploratory Data Visualization](#23-exploratory-data-visualization)
 3.  [Methodology](#3-methodology)
     1.  [Modeling Pipeline](#31-modeling-pipeline)
 4.  [Results](#4-results)
@@ -23,7 +24,9 @@ This report details the development of a machine learning system to predict buil
     1.  [Ethical Considerations](#61-ethical-considerations)
 7.  [Conclusion](#7-conclusion)
 8.  [Future Work](#8-future-work)
-9.  [References](#9-references)
+9.  [Appendix](#9-appendix)
+    1. [Learning Curves](#91-learning-curves)
+10. [References](#10-references)
 
 ## 1. Introduction
 Nepal's geographic position along the convergent boundary between the Indian and Eurasian tectonic plates renders it highly susceptible to seismic activity. The devastating 2015 Gorkha earthquake (Mw 7.8) underscored the vulnerability of the nation's building stock, causing widespread destruction, significant loss of life, and severe socio-economic disruption, including displacement and long-term impacts on livelihoods. Accurate prediction of building damage based on structural characteristics and earthquake parameters is crucial not only for immediate disaster response but also for informing resilient urban planning, resource allocation for seismic retrofitting, and developing targeted preparedness strategies for future inevitable events.
@@ -42,7 +45,7 @@ Prior research in seismic damage assessment has frequently leveraged remote sens
 ## 2. Data Sources and Preparation
 
 ### 2.1. Data Sources
-The primary datasets used in this project include:
+The primary datasets used in this project are summarized in Table 1.
 1.  **Building Data (DrivenData):** Sourced from the "Richter's Predictor: Modeling Earthquake Damage" competition hosted by DrivenData.org and downloaded from the competition portal. This includes:
     *   `train_values.csv`: Structural characteristics, usage, ownership, and geographic identifiers (`geo_level_1_id`, `geo_level_2_id`, `geo_level_3_id`) for ~260,000 buildings.
     *   `train_labels.csv`: The corresponding damage grade (1, 2, or 3) for each building in the training set.
@@ -54,13 +57,72 @@ The primary datasets used in this project include:
     *   Administrative boundary shapefiles for Nepal (`data/npl_adm_nd_20240314_ab_shp/`) were obtained from publicly available sources (likely GADM or similar administrative datasets) for potential map visualization. However, as noted, linking these to the building data via `geo_level_id`s proved intractable.
     *   SRTM (Shuttle Radar Topography Mission) 3 arc-second (approximately 90-meter resolution) Global elevation data was acquired via NASA Earthdata. While potentially useful for deriving terrain features like slope and aspect, its integration was contingent on resolving the `geo_level_id` mapping. Furthermore, even if integrated, this resolution might not fully capture hyper-local site conditions critical for individual building vulnerability (e.g., micro-topography, very localized slope instabilities).
 
+**Table 1: Primary Data Sources**
+| File/Data Type                       | Source/Origin                                  | Brief Description                                      | Key Variables/Purpose in Project                                  |
+| :----------------------------------- | :--------------------------------------------- | :----------------------------------------------------- | :---------------------------------------------------------------- |
+| `train_values.csv`                   | DrivenData Competition                         | Building structural characteristics, usage, geo IDs    | Input features for model                                          |
+| `train_labels.csv`                   | DrivenData Competition                         | Damage grade (1, 2, or 3) for each building        | Target variable for prediction                                    |
+| SRTM 3 arc-second Global Elevation   | NASA Earthdata                                 | Digital Elevation Model (DEM)                          | Source for terrain features (elevation, slope, aspect)            |
+| Nepal Administrative Boundaries      | GADM / Govt. of Nepal (via public sources)     | Shapefiles for administrative regions of Nepal         | Context for potential geographic visualization (challenges noted) |
+| Gorkha Earthquake Parameters         | USGS/NSC Public Catalogs                       | Magnitude, depth, epicenter for the 2015 Gorkha quake  | Simplified seismic input features                                 |
+
 ### 2.2. Data Merging and Preprocessing
-Data preparation involved several steps to create a unified dataset suitable for modeling:
-1.  **Merging:** The building values (`train_values.csv`) and labels (`train_labels.csv`) were merged based on the unique `building_id`.
+Data preparation involved several steps to create a unified dataset suitable for modeling. The `train_values.csv` file contains a rich set of features describing building attributes, a selection of which is detailed in Table 2.
+
+**Table 2: Selected Key Features from Building Data (`train_values.csv`)**
+| Feature Name                     | Description                                         | Data Type   | Example Values / Format          |
+| :------------------------------- | :-------------------------------------------------- | :---------- | :------------------------------- |
+| `geo_level_1_id`                 | Geographic region ID (largest)                      | Categorical | 0, 1, ..., 29                    |
+| `geo_level_2_id`                 | Geographic region ID (medium)                       | Categorical | 0, 1, ..., 1427                  |
+| `geo_level_3_id`                 | Geographic region ID (smallest)                     | Categorical | 0, 1, ..., 12567                 |
+| `count_floors_pre_eq`            | Number of floors before earthquake                  | Numerical   | 1, 2, 3, ...                     |
+| `age`                            | Age of the building (years)                         | Numerical   | 5, 10, 20, ...                   |
+| `area_percentage`                | Normalized footprint area                           | Numerical   | 5, 10, 15, ...                   |
+| `height_percentage`              | Normalized height                                   | Numerical   | 2, 3, 5, ...                     |
+| `foundation_type`                | Type of foundation                                  | Categorical | r, u, w, h, i                    |
+| `roof_type`                      | Type of roof                                        | Categorical | n, q, x                          |
+| `ground_floor_type`              | Type of ground floor                                | Categorical | f, m, v, x, z                    |
+| `land_surface_condition`         | Land surface condition                              | Categorical | n, o, t                          |
+| `has_superstructure_adobe_mud`   | Binary flag for adobe/mud superstructure material   | Categorical | 0, 1                             |
+
+1.  **Merging Core Data:** The initial step involved merging the building characteristics (`train_values.csv`) with their corresponding damage grades (`train_labels.csv`) using the unique `building_id`. This crucial join creates the primary dataset for training and evaluation.
+    *   *Conceptual Implementation (from `src/feature_engineering.py`): This is achieved using a pandas DataFrame join operation, conceptually: `building_df = building_values_df.join(building_labels_df)`.*
 2.  **Schema Standardization:** Column names were programmatically stripped of leading/trailing whitespace. Data types were largely inferred correctly by Pandas during CSV loading, and these types were subsequently used to segregate features into numerical and categorical streams for appropriate preprocessing (scaling and encoding) in the modeling phase.
 3.  **Feature Engineering (Simplified and Critically Evaluated):** A significant simplification was the uniform application of the main Gorkha shock's parameters (magnitude 7.8, depth ~15km, epicenter ~28.23°N, ~84.73°E) as features (`main_eq_magnitude`, `main_eq_depth`, `main_eq_epicenter_lat`, `main_eq_epicenter_lon`) to *all* building records. This was a pragmatic choice due to the aforementioned lack of precise building coordinates and the inability to link buildings to detailed ground shaking intensity maps (e.g., ShakeMaps). However, this approach inherently fails to capture the substantial spatial variability in ground shaking that buildings would have experienced based on their distance from the fault rupture, local geological conditions, and site amplification effects. This homogenization of seismic input is a major limiting factor and likely contributes significantly to the observed performance plateau of the models.
+    *   *Conceptual Implementation (from `src/feature_engineering.py`): This involved identifying the main Gorkha event from combined earthquake catalogs and then adding its parameters as new columns to the building DataFrame, e.g., `final_df['main_eq_magnitude'] = main_event['magnitude'].values[0]`.*
 4.  **Handling Missing Values & Outliers:** Initial exploratory data analysis of the primary building dataset (`train_values.csv`) revealed it to be relatively complete, with minimal missing values across most features. No explicit imputation strategies for these were implemented in the main data preparation script (`src/feature_engineering.py`); any sporadic missing data were expected to be handled by the encoding strategies used in the subsequent modeling pipelines (e.g., `OrdinalEncoder`'s `unknown_value` parameter). An analysis for outliers was conducted (details of this exploratory analysis are not in the production scripts), but it was determined that removing them did not significantly impact model performance, and thus no automated outlier removal was implemented.
-5.  **Final Dataset:** The resulting dataset, saved as `data/processed/buildings_features_earthquakes.csv`, contains building structural, usage, ownership, location (geo IDs), and simplified earthquake features alongside the target `damage_grade`. This formed the basis for all subsequent modeling.
+5.  **Preprocessing for Modeling:** To prepare features for the machine learning algorithms, numerical features were standardized, and categorical features were encoded.
+    *   **Numerical Scaling:** `StandardScaler` from Scikit-learn was used to center numerical features by removing the mean and scaling to unit variance.
+    *   **Categorical Encoding:** Two strategies were adopted based on model requirements:
+        *   `OrdinalEncoder`: Used for tree-based models (LightGBM, Random Forest), converting categorical strings to numerical representations.
+        *   `OneHotEncoder`: Used for linear models (Logistic Regression, SVM) to create binary columns for each category, avoiding imposition of artificial ordinal relationships.
+    *   *Conceptual Implementation (e.g., from `src/modeling/train_lightgbm.py` or `src/modeling/train_baseline.py`): These transformations are applied using Scikit-learn's `ColumnTransformer`, which allows different transformers to be applied to different columns. For instance: `preprocessor = ColumnTransformer(transformers=[('num', StandardScaler(), numerical_feature_list), ('cat', OrdinalEncoder(), categorical_feature_list)])`. The fitted preprocessor objects are saved (e.g., `models/lightgbm_preprocessor.joblib`) for consistent application during training and inference.*
+6.  **Final Dataset:** The resulting dataset, saved as `data/processed/buildings_features_earthquakes.csv`, contains building structural, usage, ownership, location (geo IDs), and simplified earthquake features alongside the target `damage_grade`. This formed the basis for all subsequent modeling.
+
+### 2.3 Exploratory Data Visualization
+To better understand the dataset characteristics, several visualizations were generated.
+
+The distribution of the target variable, `damage_grade`, is shown in Figure 1, illustrating the extent of class imbalance.
+
+![Figure 1: Distribution of Target Variable (Damage Grade)](reports/images/fig1_target_distribution.png)
+*Figure 1: Distribution of Target Variable (Damage Grade)*
+
+Figure 2 presents the distributions for key numerical features such as `age`, `count_floors_pre_eq`, `area_percentage`, and `height_percentage`. These plots help to understand the underlying patterns of these continuous variables.
+
+![Figure 2: Distributions of Key Numerical Features](reports/images/fig2_numerical_feature_distributions.png)
+*Figure 2: Distributions of Key Numerical Features*
+
+Similarly, Figure 3 displays bar charts for key categorical features, including `foundation_type`, `roof_type`, `ground_floor_type`, and `land_surface_condition`, showing the frequency of different categories.
+
+![Figure 3: Distributions of Key Categorical Features](reports/images/fig3_categorical_feature_distributions.png)
+*Figure 3: Distributions of Key Categorical Features*
+
+The completeness of the dataset was also assessed, and Figure 4 illustrates the percentage of missing values per feature.
+
+![Figure 4: Missing Value Distribution Across Features](reports/images/fig4_missing_value_distribution.png)
+*Figure 4: Missing Value Distribution Across Features*
+
+These visualizations provide a foundational understanding of the data's structure and distributions before modeling.
 
 ## 3. Methodology
 
@@ -113,6 +175,24 @@ The performance of the trained models on the held-out test set is summarized bel
 
 *(Note: Grade 1 Recall values are approximate based on classification reports)*
 
+A visual comparison of key performance metrics across all evaluated models is presented in Figure 5. This chart provides a clear overview of how the models rank in terms of accuracy, ROC AUC, and weighted F1-score.
+
+![Figure 5: Comparison of Model Performance Metrics](reports/images/fig5_model_comparison_metrics.png)
+*Figure 5: Comparison of Model Performance Metrics*
+
+To delve deeper into the error patterns and per-class performance of the top models, confusion matrices were generated (Figure 6). These matrices help visualize common misclassification patterns for the Tuned LightGBM, Logistic Regression, and LinearSVC models.
+
+![Figure 6: Confusion Matrices for Top Performing Models](reports/images/fig6_confusion_matrices.png)
+*Figure 6: Confusion Matrices for Top Performing Models*
+
+The Receiver Operating Characteristic (ROC) curves (Figure 7) and Precision-Recall (PR) curves (Figure 8) offer more detailed insights into the trade-offs between true positive rate and false positive rate, and precision and recall, respectively. These are particularly useful for comparing the class discrimination ability of the top models, especially given the imbalanced nature of the dataset.
+
+![Figure 7: ROC Curves for Top Performing Models](reports/images/fig7_roc_curves.png)
+*Figure 7: ROC Curves for Top Performing Models*
+
+![Figure 8: Precision-Recall Curves for Top Performing Models](reports/images/fig8_pr_curves.png)
+*Figure 8: Precision-Recall Curves for Top Performing Models*
+
 ### 4.2. Model Selection
 The **Tuned LightGBM model** demonstrated the best overall performance, achieving the highest accuracy and weighted F1-score while maintaining the excellent AUC of the untuned version. It showed a better balance in classifying the different damage grades compared to other models, particularly improving recall for Grade 1 (Low Damage) significantly over the untuned tree models, and achieving better precision for Grade 1 than LinearSVC. Its fast training and inference times were additional advantages. This model (`models/lightgbm_tuned_model.joblib`) was selected as the primary model for the Streamlit application.
 
@@ -125,9 +205,36 @@ The variance in which secondary features were highlighted by different models, a
 
 While location dominated, tree-based models (LGBM, RF), especially the tuned LGBM, assigned relatively higher importance to building characteristics compared to the linear models. Features like `age`, `foundation_type`, `count_floors_pre_eq`, `area_percentage`, and various superstructure material flags (`has_superstructure_*`) appeared among the top ~20-30 features, indicating they do contribute to the prediction, albeit less than location.
 
+Figure 9 specifically details the top N feature importances for the final selected model, the Tuned LightGBM, clearly highlighting the key drivers.
+
+![Figure 9: Feature Importances for the Tuned LightGBM Model](reports/images/fig9_feature_importance_lgbm.png)
+*Figure 9: Feature Importances for the Tuned LightGBM Model*
+
+To contrast how different model types prioritize features, Figure 10 provides a comparative view of feature importances, for instance, between the Tuned LightGBM and Logistic Regression models.
+
+![Figure 10: Comparative Feature Importances (Tuned LightGBM vs. Logistic Regression)](reports/images/fig10_comparative_feature_importance.png)
+*Figure 10: Comparative Feature Importances (Tuned LightGBM vs. Logistic Regression)*
+
+To illustrate how these features interact in a practical scenario, consider an example input configuration for the Tuned LightGBM model that resulted in a "Low" risk prediction:
+
+*   **Geographic Location:** `geo_level_1_id: 26`, `geo_level_2_id: 697`, `geo_level_3_id: 6261`
+*   **Structural Properties:** `count_floors_pre_eq: 1`, `age: 0` (new building), `area_percentage: 5`
+*   **Material & Design:** `foundation_type: r` (RC - Reinforced Concrete), `roof_type: n` (RCC/RB/RBC), `ground_floor_type: v` (Cement-Stone/Brick), `has_superstructure_rc_engineered: True` (and other weaker superstructure materials set to False).
+*   **Other Factors:** `land_surface_condition: t` (Steep slope), `position: j` (Attached-1 side), `plan_configuration: d` (Rectangular), `legal_ownership_status: r` (Rented), `count_families: 3`, `has_secondary_use_hotel: True`, `has_secondary_use_rental: True`, `has_secondary_use_gov_office: True`.
+
+This prediction of "Low" risk is likely influenced by the combination of a very new building (`age: 0`), strong construction materials (reinforced concrete foundation and roof, engineered superstructure), and a low number of floors (`count_floors_pre_eq: 1`). Even if some other factors like a steep land surface condition or specific secondary uses might individually suggest higher risk, the model appears to weigh the modern, robust structural characteristics heavily in this instance, leading to an overall low risk assessment. The specific geographic identifiers also play a crucial role, as damage patterns are highly localized. This example demonstrates the utility of the Streamlit application in exploring such feature sensitivities.
+
 ## 5. Streamlit Application
 
 An interactive web application was developed using Streamlit to facilitate exploration of the model predictions.
+
+[Placeholder for Screenshot: Main Input Sidebar showing user controls for selecting models and inputting building features.]
+
+[Placeholder for Screenshot: Example of prediction output for a hypothetical building, displaying the predicted damage risk.]
+
+[Placeholder for Screenshot: In-app chart showing risk distribution across categories for the selected model.]
+
+[Placeholder for Screenshot: In-app chart displaying feature importances for the selected model.]
 
 ### 5.1. Purpose and Features
 The application allows users to:
@@ -207,7 +314,15 @@ Building upon the findings and limitations of this project, several avenues for 
 
 *   **Deployment and User Feedback:** While the current Streamlit app is a prototype, future work could focus on developing a more robust, user-friendly version incorporating new features and visualizations. Gathering feedback from potential end-users (e.g., disaster management agencies, engineers) would be invaluable for refining its utility.
 
-## 9. References
+## 9. Appendix
+
+### 9.1 Learning Curves
+To diagnose potential issues like bias or variance and to assess whether the model might benefit from more data, learning curves for the final Tuned LightGBM model were plotted (Figure 11). These curves show the training and validation scores as a function of the number of training samples.
+
+![Figure 11: Learning Curves for the Tuned LightGBM Model](reports/images/fig11_learning_curves_lgbm.png)
+*Figure 11: Learning Curves for the Tuned LightGBM Model*
+
+## 10. References
 *   DrivenData Competition: "Richter's Predictor: Modeling Earthquake Damage" (https://www.drivendata.org/competitions/57/nepal-earthquake/)
 *   USGS Earthquake Catalog API (https://earthquake.usgs.gov/fdsnws/event/1/)
 *   Scikit-learn Documentation (https://scikit-learn.org/stable/documentation.html)

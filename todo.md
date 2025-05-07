@@ -90,7 +90,7 @@
 
 ## Phase 9: Final Documentation & Wrap-up
 - [ ] Update Documentation
-  - [ ] Update `whitepaper.md` comprehensively (advanced models, tuning, features, map, final summary)
+  - [x] Update `whitepaper.md` comprehensively (advanced models, tuning, features, map, final summary) -> Near complete: Added figures, data details, Streamlit placeholders, and a specific prediction example. Final read-through/minor edits outstanding.
   - [ ] Update `data/data_dictionary.md` (if new features added)
   - [ ] Mark Phase 7-9 tasks complete in `todo.md`
   - [ ] Create/Update top-level `README.md` (project overview, setup, run instructions)
