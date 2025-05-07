@@ -221,9 +221,10 @@ def _get_feature_names(preprocessor, original_feature_list):
     return original_feature_list
 
 def load_metrics(path):
-    """Loads model comparison metrics."""
+    """Loads model comparison metrics, handling N/A and stripping header whitespace."""
     try:
-        metrics_df = pd.read_csv(path)
+        metrics_df = pd.read_csv(path, na_values=['N/A', 'NA', 'n/a', 'na']) # Explicitly define NA values
+        metrics_df.columns = metrics_df.columns.str.strip() # Remove leading/trailing whitespace from headers
         return metrics_df
     except FileNotFoundError:
         st.error(f"Metrics file not found at {path}. Cannot display comparison.")
@@ -470,11 +471,10 @@ def main():
     if current_preprocessor and hasattr(current_preprocessor, 'feature_names_in_'):
         APP_FEATURE_COLUMNS = list(current_preprocessor.feature_names_in_)
     else:
-        # Fallback: Use a predefined list or all columns if feature_names_in_ is not available
-        # This fallback might not be accurate if preprocessors differ significantly
         st.sidebar.warning(f"Could not determine exact feature set for {selected_model_name} from preprocessor. Using a general set. Predictions might be affected if this is incorrect.")
-        APP_FEATURE_COLUMNS = potential_feature_cols # Or a manually curated default list
-
+        APP_FEATURE_COLUMNS = potential_feature_cols
+    
+    # st.sidebar.info(f"DEBUG: Features for {selected_model_name}: {APP_FEATURE_COLUMNS}") # REMOVE Temporary debug line
 
     input_data = {}
 
@@ -527,28 +527,44 @@ def main():
                 input_data['count_floors_pre_eq'] = st.slider(
                     'Number of Floors',
                     min_value=int(data['count_floors_pre_eq'].min()),
-                    max_value=int(data['count_floors_pre_eq'].max()), # Max floors from data
-                    value=int(data['count_floors_pre_eq'].median()), # Default to median
+                    max_value=int(data['count_floors_pre_eq'].max()), 
+                    value=int(data['count_floors_pre_eq'].median()), 
                     step=1,
                     help="Number of floors in the building before the earthquake."
                 )
-            if 'age_building' in APP_FEATURE_COLUMNS:
-                input_data['age_building'] = st.slider(
-                    'Age of Building (Years)',
-                    min_value=int(data['age_building'].min()),
-                    max_value=int(data['age_building'].max()), # Max age from data
-                    value=int(data['age_building'].median()),
+            # Check for 'age' (original name) instead of 'age_building' (app display name)
+            if 'age' in APP_FEATURE_COLUMNS:
+                input_data['age'] = st.slider(
+                    'Age of Building (Years)', # This is the display label
+                    min_value=int(data['age'].min()), # Use 'age' for data lookup
+                    max_value=int(data['age'].max()), 
+                    value=int(data['age'].median()),
                     step=5,
                     help="Age of the building in years."
                 )
-            if 'height_ft_pre_eq' in APP_FEATURE_COLUMNS: # Renamed from area_percentage
-                input_data['height_ft_pre_eq'] = st.slider( # Changed from area_percentage
-                    'Building Height (ft)', # Renamed from area_percentage
-                    min_value=int(data['height_ft_pre_eq'].min()), # Renamed from area_percentage
-                    max_value=int(data['height_ft_pre_eq'].max()), # Max height, Renamed from area_percentage
-                    value=int(data['height_ft_pre_eq'].median()), # Renamed from area_percentage
+            # Check for 'area_percentage' or 'height_percentage' (original names)
+            # Prioritizing 'area_percentage' as it appeared in feature importance. 
+            # The UI will still say 'Building Height (ft)'.
+            # The original CSV had both area_percentage and height_percentage. The models likely use one or both.
+            # For the UI, we have one input "Building Height (ft)". We need to decide which original feature it maps to.
+            # Given the feature importance plot showed 'num_area_percentage', let's assume the UI's "Building Height (ft)" should map to 'area_percentage' for now.
+            # If models were trained expecting 'height_percentage' for this input, this choice would be wrong.
+            # For now, let's assume 'area_percentage' is the primary one linked to the old 'height_ft_pre_eq' concept in the UI.
+
+            height_feature_to_use = None
+            if 'area_percentage' in APP_FEATURE_COLUMNS:
+                height_feature_to_use = 'area_percentage'
+            elif 'height_percentage' in APP_FEATURE_COLUMNS: # Fallback if area_percentage is not there
+                height_feature_to_use = 'height_percentage'
+
+            if height_feature_to_use:
+                input_data[height_feature_to_use] = st.slider( 
+                    'Building Height (ft)', # Display label
+                    min_value=int(data[height_feature_to_use].min()), 
+                    max_value=int(data[height_feature_to_use].max()), 
+                    value=int(data[height_feature_to_use].median()), 
                     step=1,
-                    help="Height of the building in feet before the earthquake." # Renamed from area_percentage
+                    help="Height of the building in feet before the earthquake. This input corresponds to the model's '{}' feature.".format(height_feature_to_use)
                 )
 
         with st.expander("🧱 Material Properties", expanded=False):
@@ -765,10 +781,19 @@ def main():
     with tab2:
         st.header("Model Performance Comparison")
         st.markdown("Comparison of performance metrics across different models.")
-        # Load metrics from CSV - this should be generated by a separate script
-        metrics_df = load_metrics(os.path.join(BASE_DIR, 'reports', 'model_performance_summary.csv'))
+        metrics_df = load_metrics(os.path.join(BASE_DIR, 'reports', 'model_comparison_metrics.csv'))
         if metrics_df is not None:
-            st.dataframe(metrics_df.style.highlight_max(axis=0, subset=pd.IndexSlice[:, ['Accuracy', 'F1 (Weighted)', 'AUC (OvR Macro)']], color='lightgreen'), use_container_width=True)
+            # Ensure the subset columns actually exist in the DataFrame before styling
+            available_cols_for_styling = ['Accuracy'] # Start with Accuracy as it's likely always there
+            if 'Weighted F1' in metrics_df.columns:
+                available_cols_for_styling.append('Weighted F1')
+            if 'ROC AUC' in metrics_df.columns:
+                available_cols_for_styling.append('ROC AUC')
+            
+            if not available_cols_for_styling:
+                st.dataframe(metrics_df, use_container_width=True) # Display without styling if no target cols
+            else:
+                st.dataframe(metrics_df.style.highlight_max(axis=0, subset=pd.IndexSlice[:, available_cols_for_styling], color='lightgreen'), use_container_width=True)
         else:
             st.warning("Model performance summary not available.")
 
