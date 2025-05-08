@@ -159,10 +159,3 @@ This configuration represents a very old, tall, and large area building with wea
 }
 ```
 
-## Notes for Other Models
-
--   **Feature Sets:** Different models might have been trained on slightly different feature sets (e.g., some might not use all `main_eq_*` parameters if they weren't in their `feature_names_in_`). The Streamlit app dynamically adjusts the sidebar inputs based on the selected model's expected features.
--   **Preprocessing:** Linear models (Logistic Regression, SVM) use One-Hot Encoding, which significantly expands the feature space compared to Ordinal Encoding used by tree-based models (LightGBM, Random Forest). The raw inputs above are before this preprocessing.
--   **Sensitivity:** Models will have different sensitivities to various features. An input that yields "High" for LightGBM might yield "Medium" for Logistic Regression, and vice-versa.
-
-You can use these JSON structures as a guide to set the corresponding values in the Streamlit application's sidebar to test the predictions. 

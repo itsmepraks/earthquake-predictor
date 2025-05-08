@@ -460,7 +460,6 @@ def main():
         st.sidebar.warning(f"Could not determine exact feature set for {selected_model_name} from preprocessor. Using a general set. Predictions might be affected if this is incorrect.")
         APP_FEATURE_COLUMNS = potential_feature_cols
     
-    st.sidebar.info(f"DEBUG: Features for {selected_model_name}: {APP_FEATURE_COLUMNS}") # ADDED DEBUG LINE
 
     input_data = {}
 
@@ -828,8 +827,66 @@ def main():
         st.markdown("Description of features used in the dataset.")
         # Consider loading this from data_dictionary.md or a CSV for better maintenance
         # For now, displaying a placeholder or a sample of FEATURE_VALUE_MAPS
-        st.write(FEATURE_VALUE_MAPS) # Simple display, can be improved
-        st.markdown("For a full data dictionary, please refer to `data/data_dictionary.md`.")
+        # st.write(FEATURE_VALUE_MAPS) # Old way
+        try:
+            with open(os.path.join(BASE_DIR, 'data', 'data_dictionary.md'), 'r') as f:
+                md_content = f.read()
+            
+            # Find the start and end of the table we want (from `| Column Name` to end of table block)
+            table_start_marker = "| Column Name                           |"
+            # The table ends before the next major section or end of file.
+            # We can assume it ends when lines no longer start with "|"
+            
+            table_start_index = md_content.find(table_start_marker)
+            if table_start_index != -1:
+                # Extract from the start of the table
+                table_md = md_content[table_start_index:]
+                lines = table_md.splitlines()
+                table_lines = []
+                header = []
+                data_rows = []
+
+                first_data_line_found = False
+                for i, line in enumerate(lines):
+                    if not line.strip().startswith("|"):
+                        if first_data_line_found: # Break if table content has ended
+                            break
+                        continue # Skip lines before or after the table block
+                    
+                    parts = [part.strip() for part in line.strip('|').split('|')]
+                    
+                    if not header: # First line of the table block is header
+                        header = parts
+                        table_lines.append(line) # Keep for markdown display
+                    elif "---" in parts[0] or "---" in parts[-1]: # Separator line
+                        table_lines.append(line) # Keep for markdown display
+                        first_data_line_found = True
+                    elif header and first_data_line_found: # Data row
+                        if len(parts) == len(header): # Ensure data row matches header length
+                            data_rows.append(parts)
+                        table_lines.append(line) # Keep for markdown display
+                
+                final_table_md = "\n".join(table_lines)
+                st.markdown(final_table_md, unsafe_allow_html=True)
+
+                # Create DataFrame for CSV download
+                if header and data_rows:
+                    df_for_csv = pd.DataFrame(data_rows, columns=header)
+                    csv_string = df_for_csv.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download Data Dictionary as CSV",
+                        data=csv_string,
+                        file_name="data_dictionary.csv",
+                        mime="text/csv",
+                    )
+                else:
+                    st.warning("Could not parse table content for CSV download.")
+            else:
+                st.warning("Could not find the data dictionary table in the expected format.")
+        except FileNotFoundError:
+            st.error(f"data_dictionary.md not found at {os.path.join(BASE_DIR, 'data', 'data_dictionary.md')}")
+        except Exception as e:
+            st.error(f"Error reading or parsing data_dictionary.md: {e}")
 
 
 if __name__ == "__main__":

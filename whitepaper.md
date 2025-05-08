@@ -1,32 +1,36 @@
 # Nepal Earthquake Building Damage Prediction: A Machine Learning Approach
-**Final Project Report**
+**Final Project Report** by Anurag Dhungana and Prakriti Bista May 7 2025
 
 ## Abstract
 This report details the development of a machine learning system to predict building damage levels (Low, Medium, High) resulting from the 2015 Gorkha earthquake in Nepal. Utilizing a dataset combining building characteristics from the DrivenData competition with earthquake parameters, various classification models were implemented and evaluated, including Logistic Regression, LightGBM, Random Forest, and Support Vector Machines (SVM). Preprocessing involved scaling numerical features and applying both One-Hot Encoding and Ordinal Encoding for categorical features. Hyperparameter tuning via RandomizedSearchCV identified an optimized LightGBM model as the top performer, achieving approximately 72.5% accuracy and 0.880 ROC AUC. Feature analysis consistently highlighted geographic location identifiers (`geo_level_id`) as the most dominant predictors. An interactive Streamlit application was developed to allow users to explore predictions based on adjustable building features, compare model performance, and view feature importances. Key challenges included difficulties in integrating terrain data and creating geographic map visualizations due to unresolved discrepancies between the dataset's geographic identifiers and available administrative boundary shapefiles.
 
 ## Table of Contents
-1.  [Introduction](#1-introduction)
-2.  [Data Sources and Preparation](#2-data-sources-and-preparation)
-    1.  [Data Sources](#21-data-sources)
-    2.  [Data Merging and Preprocessing](#22-data-merging-and-preprocessing)
-    3.  [Exploratory Data Visualization](#23-exploratory-data-visualization)
-3.  [Methodology](#3-methodology)
-    1.  [Modeling Pipeline](#31-modeling-pipeline)
-4.  [Results](#4-results)
-    1.  [Model Performance Comparison](#41-model-performance-comparison)
-    2.  [Model Selection](#42-model-selection)
-    3.  [Feature Importance Insights](#43-feature-importance-insights)
-5.  [Streamlit Application](#5-streamlit-application)
-    1.  [Purpose and Features](#51-purpose-and-features)
-    2.  [Technology Stack](#52-technology-stack)
-    3.  [Limitations and Challenges](#53-limitations-and-challenges)
-6.  [Discussion](#6-discussion)
-    1.  [Ethical Considerations](#61-ethical-considerations)
-7.  [Conclusion](#7-conclusion)
-8.  [Future Work](#8-future-work)
-9.  [Appendix](#9-appendix)
-    1. [Learning Curves](#91-learning-curves)
-10. [References](#10-references)
+- [Nepal Earthquake Building Damage Prediction: A Machine Learning Approach](#nepal-earthquake-building-damage-prediction-a-machine-learning-approach)
+  - [Abstract](#abstract)
+  - [Table of Contents](#table-of-contents)
+  - [1. Introduction](#1-introduction)
+    - [1.1. Literature Context](#11-literature-context)
+  - [2. Data Sources and Preparation](#2-data-sources-and-preparation)
+    - [2.1. Data Sources](#21-data-sources)
+    - [2.2. Data Merging and Preprocessing](#22-data-merging-and-preprocessing)
+    - [2.3 Exploratory Data Visualization](#23-exploratory-data-visualization)
+  - [3. Methodology](#3-methodology)
+    - [3.1. Modeling Pipeline](#31-modeling-pipeline)
+  - [4. Results](#4-results)
+    - [4.1. Model Performance Comparison](#41-model-performance-comparison)
+    - [4.2. Model Selection](#42-model-selection)
+    - [4.3. Feature Importance Insights](#43-feature-importance-insights)
+  - [5. Streamlit Application](#5-streamlit-application)
+    - [5.1. Purpose and Features](#51-purpose-and-features)
+    - [5.2. Technology Stack](#52-technology-stack)
+    - [5.3. Limitations and Challenges](#53-limitations-and-challenges)
+  - [6. Discussion](#6-discussion)
+  - [6.1. Ethical Considerations](#61-ethical-considerations)
+  - [7. Conclusion](#7-conclusion)
+  - [8. Future Work](#8-future-work)
+  - [9. Appendix](#9-appendix)
+    - [9.1 Learning Curves](#91-learning-curves)
+  - [10. References](#10-references)
 
 ## 1. Introduction
 Nepal's geographic position along the convergent boundary between the Indian and Eurasian tectonic plates renders it highly susceptible to seismic activity. The devastating 2015 Gorkha earthquake (Mw 7.8) underscored the vulnerability of the nation's building stock, causing widespread destruction, significant loss of life, and severe socio-economic disruption, including displacement and long-term impacts on livelihoods. Accurate prediction of building damage based on structural characteristics and earthquake parameters is crucial not only for immediate disaster response but also for informing resilient urban planning, resource allocation for seismic retrofitting, and developing targeted preparedness strategies for future inevitable events.
@@ -328,4 +332,8 @@ To diagnose potential issues like bias or variance and to assess whether the mod
 *   Scikit-learn Documentation (https://scikit-learn.org/stable/documentation.html)
 *   LightGBM Documentation (https://lightgbm.readthedocs.io/en/latest/)
 *   Streamlit Documentation (https://docs.streamlit.io/)
+*   Dong, L., & Shan, J. (2013). A comprehensive review of earthquake-induced building damage detection with remote sensing techniques. *ISPRS Journal of Photogrammetry and Remote Sensing, 84*, 85-99.
+*   Borzi, B., Elnashai, A. S., & Pinho, R. (2008). Seismic vulnerability of European reinforced concrete frames. *Engineering Structures, 30*(3), 854-872.
+*   Tesfamariam, S., & Liu, Z. (2010). Earthquake induced damage classification for reinforced concrete buildings using fuzzy logic. *Engineering Structures, 32*(11), 3396-3405.
+*   Mangalathu, S., Jang, H., Hwang, S.-H., & Jeon, J.-S. (2020). Data-driven Machine-Learning-Based Seismic Failure Mode Identification of Reinforced concrete Shear walls. *Engineering Structures, 208*, 110331.
 *   Relevant research papers on the 2015 Gorkha earthquake and seismic vulnerability in Nepal.
